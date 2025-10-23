@@ -10,9 +10,14 @@
     --color-primary: #007bff; /* Azul vibrante */
     --color-primary-hover: #0056b3;
     --color-success: #28a745;
+    --color-success-hover: #1e7e34;
     --color-danger: #dc3545;
+    --color-danger-hover: #c82333;
+    --color-secondary: #6c757d;
+    --color-secondary-hover: #5a6268;
     --color-radius: 8px;
-    --color-shadow: rgba(0, 0, 0, 0.1); /* Sombra suave */
+    --color-shadow-light: rgba(0, 0, 0, 0.1); /* Sombra suave */
+    --color-shadow-dark: rgba(255, 255, 255, 0.05);
     --color-transition: 0.3s ease-in-out;
     --color-spacing: 1.5rem; /* Espaçamento padrão */
 }
@@ -24,6 +29,7 @@
     --color-text: #2c3e50;      /* Texto escuro para contraste alto */
     --color-text-secondary: #7f8c8d;
     --color-border: #bdc3c7;
+    --color-shadow: var(--color-shadow-light);
 }
 
 /* Tema ESCURO */
@@ -33,7 +39,7 @@
     --color-text: #ecf0f1;      /* Texto claro para contraste alto */
     --color-text-secondary: #bdc3c7;
     --color-border: #4a4a4a;
-    --color-shadow: rgba(255, 255, 255, 0.05); /* Sombra clara no escuro */
+    --color-shadow: var(--color-shadow-dark);
 }
 
 * {
@@ -51,7 +57,14 @@ body {
     background-color: var(--color-background);
     color: var(--color-text);
     line-height: 1.6;
+    /* Animação suave para troca de tema */
     transition: background-color var(--color-transition), color var(--color-transition);
+}
+
+h2 {
+    margin-bottom: 1rem;
+    border-bottom: 2px solid var(--color-border);
+    padding-bottom: 0.5rem;
 }
 
 /* 2. Layout Principal */
@@ -80,10 +93,12 @@ body {
     display: flex;
     align-items: center;
     font-size: 1.5rem;
+    font-weight: 700;
 }
 
 .logo span {
     margin-right: 0.5rem;
+    font-size: 1.8rem;
 }
 
 .main-footer {
@@ -95,20 +110,20 @@ body {
     font-size: 0.9rem;
 }
 
-/* 4. Componente Card (Formulário e Lista) */
+/* 4. Componente Card */
 .card {
     background-color: var(--color-surface);
     padding: var(--color-spacing);
     border-radius: var(--color-radius);
     box-shadow: 0 4px 12px var(--color-shadow);
-    transition: transform 0.2s, box-shadow 0.2s, background-color var(--color-transition);
+    transition: box-shadow 0.2s, background-color var(--color-transition);
 }
 
 .card:hover {
     box-shadow: 0 6px 16px var(--color-shadow);
 }
 
-/* 5. Formulário (Acessibilidade) */
+/* 5. Formulário (Acessibilidade e Inputs) */
 .pet-form {
     display: flex;
     flex-direction: column;
@@ -128,7 +143,7 @@ select {
     padding: 0.75rem 1rem;
     border: 1px solid var(--color-border);
     border-radius: var(--color-radius);
-    background-color: var(--color-background); /* Destaca do 'surface' do card */
+    background-color: var(--color-background);
     color: var(--color-text);
     transition: border-color 0.3s, background-color var(--color-transition);
 }
@@ -137,7 +152,7 @@ input:focus,
 select:focus {
     border-color: var(--color-primary);
     outline: none;
-    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25); /* Foco de acessibilidade */
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
 }
 
 /* 6. Botões (Animações) */
@@ -148,12 +163,12 @@ select:focus {
     cursor: pointer;
     font-weight: 600;
     transition: background-color var(--color-transition), transform 0.1s, box-shadow 0.2s;
-    /* Contraste Garantido pelo uso de 'var(--color-text)' ou cores escuras */
+    /* Garante que botões sejam visíveis no modo claro e escuro */
 }
 
 .btn-primary {
     background-color: var(--color-primary);
-    color: white; /* Contraste Alto */
+    color: white; 
 }
 
 .btn-primary:hover {
@@ -162,18 +177,37 @@ select:focus {
     box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
 }
 
+.btn-success {
+    background-color: var(--color-success);
+    color: white;
+}
+
+.btn-success:hover {
+    background-color: var(--color-success-hover);
+    transform: translateY(-2px);
+}
+
 .btn-danger {
     background-color: var(--color-danger);
     color: white;
 }
 
 .btn-danger:hover {
-    background-color: #c82333;
-    transform: scale(1.05); /* Animação leve */
+    background-color: var(--color-danger-hover);
+    transform: scale(1.05);
+}
+
+.btn-secondary {
+    background-color: var(--color-secondary);
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: var(--color-secondary-hover);
 }
 
 /* Botão de Tema */
-#theme-toggle {
+.btn-theme-toggle {
     background: none;
     border: 1px solid var(--color-border);
     color: var(--color-text);
@@ -186,11 +220,11 @@ select:focus {
     transition: background-color var(--color-transition), border-color var(--color-transition);
 }
 
-#theme-toggle:hover {
+.btn-theme-toggle:hover {
     background-color: var(--color-border);
 }
 
-/* 7. Lista de Pets (Dinâmica) */
+/* 7. Lista de Pets (Dinâmica e Filtros) */
 .list-controls {
     display: flex;
     gap: 1rem;
@@ -215,13 +249,11 @@ select:focus {
     align-items: center;
     padding: 1rem;
     border: 1px solid var(--color-border);
-    border-left: 5px solid var(--color-primary); /* Destaque */
+    border-left: 5px solid var(--color-primary); /* Destaque visual */
     border-radius: var(--color-radius);
     background-color: var(--color-background);
-    transition: background-color var(--color-transition), opacity 0.4s ease;
-    /* Acessibilidade: Garante que o item é uma unidade */
-    role: region;
-    aria-label: "Detalhes do Pet";
+    /* Animação de fade-out e transição padrão */
+    transition: background-color var(--color-transition), opacity 0.4s ease, transform 0.4s ease; 
 }
 
 .pet-item:hover {
@@ -263,7 +295,7 @@ select:focus {
     border-radius: var(--color-radius);
 }
 
-/* Animação Fade (Opcional, mas suave) */
+/* Animação Fade (Para exclusão) */
 .fade-out {
     opacity: 0;
     transform: translateX(-20px);
@@ -277,10 +309,10 @@ select:focus {
         grid-template-columns: 1fr; /* Coluna única */
     }
 
+    /* Prioriza a lista em telas pequenas */
     .form-section {
-        order: 2; /* Move o formulário para baixo no mobile para priorizar a lista */
+        order: 2; 
     }
-
     .list-section {
         order: 1;
     }
@@ -297,7 +329,7 @@ select:focus {
 
     .pet-actions {
         margin-top: 1rem;
-        width: 100%; /* Ocupa a largura total para botões maiores */
+        width: 100%;
         justify-content: flex-end;
     }
 }
@@ -307,10 +339,11 @@ select:focus {
     .main-header {
         flex-direction: column;
         gap: 0.5rem;
+        padding: 1rem;
     }
 
     .container {
-        padding: 0 1rem; /* Menos padding lateral */
+        padding: 0 1rem;
         margin-top: 1rem;
     }
 }

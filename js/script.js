@@ -1,6 +1,6 @@
 /*
  * script.js - Pet Manager Pro
- * Lógica: CRUD de Pets, LocalStorage, Tema Claro/Escuro, Animações, Filtros.
+ * Lógica: CRUD de Pets, LocalStorage, Tema Claro/Escuro, Filtros robustos.
  */
 
 // 1. Variáveis Globais do DOM
@@ -12,9 +12,11 @@ const emptyState = document.getElementById('empty-state');
 const submitButton = document.getElementById('submit-button');
 const searchInput = document.getElementById('search-input');
 const filterSpecies = document.getElementById('filter-species');
+const cancelButton = document.getElementById('cancel-edit'); // Novo botão
 
-// Variável para armazenar o ID do pet sendo editado (null se for adição)
+// Variável global para rastrear o estado de edição
 let editingPetId = null;
+let pets = []; // Inicialmente vazia, será carregada na inicialização
 
 // 2. Persistência de Dados (Local Storage)
 
@@ -34,31 +36,26 @@ const loadPets = () => {
 
 /**
  * Salva a lista de pets no LocalStorage.
- * @param {Array} pets - A lista de pets a ser salva.
+ * @param {Array} petsToSave - A lista de pets a ser salva.
  */
-const savePets = (pets) => {
+const savePets = (petsToSave) => {
     try {
-        localStorage.setItem('pets', JSON.stringify(pets));
+        localStorage.setItem('pets', JSON.stringify(petsToSave));
     } catch (e) {
         console.error("Erro ao salvar pets no localStorage:", e);
     }
 };
 
-let pets = loadPets();
-
 // 3. Gerenciamento de Tema Claro/Escuro
 
 /**
- * Carrega o tema preferido do usuário (Local Storage ou preferência do sistema).
+ * Carrega o tema preferido e define o estado inicial.
  */
 const loadThemePreference = () => {
-    // 1. Tenta carregar do localStorage
     const savedTheme = localStorage.getItem('theme');
-
-    // 2. Tenta detectar a preferência do sistema
     const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
-    // Define o tema com a ordem de prioridade: LocalStorage > Sistema > Padrão (light)
+    // Define o tema com a ordem: LocalStorage > Sistema > Padrão (light)
     let themeToSet = 'light';
     if (savedTheme) {
         themeToSet = savedTheme;
@@ -108,7 +105,7 @@ const createPetElement = (pet) => {
     const li = document.createElement('li');
     li.className = 'pet-item';
     li.setAttribute('data-id', pet.id);
-    li.setAttribute('role', 'region'); // Acessibilidade
+    li.setAttribute('role', 'region');
     li.setAttribute('aria-label', `Detalhes de ${pet.name}`);
 
     li.innerHTML = `
@@ -127,7 +124,7 @@ const createPetElement = (pet) => {
         </div>
     `;
 
-    // Adiciona ouvintes de eventos aos botões dentro do item
+    // Adiciona ouvintes de eventos
     li.querySelector('.edit-btn').addEventListener('click', () => startEdit(pet.id));
     li.querySelector('.delete-btn').addEventListener('click', () => deletePet(pet.id));
 
@@ -135,24 +132,29 @@ const createPetElement = (pet) => {
 };
 
 /**
- * Renderiza a lista de pets no DOM com base nos filtros e busca atuais.
- * @param {Array} [currentPets=pets] - A lista de pets a ser renderizada (pode ser filtrada).
+ * Renderiza a lista de pets no DOM com filtros e busca.
  */
-const renderPets = (currentPets = pets) => {
+const renderPets = () => {
     petList.innerHTML = ''; // Limpa a lista atual
 
     const searchTerm = searchInput.value.toLowerCase();
-    const filterValue = filterSpecies.value;
+    const filterValue = filterSpecies.value.toLowerCase(); // Padroniza para robustez
 
     // Aplica Filtros e Busca
-    const filteredPets = currentPets.filter(pet => {
-        const matchesSearch = pet.name.toLowerCase().includes(searchTerm) || pet.species.toLowerCase().includes(searchTerm);
-        const matchesFilter = filterValue === 'all' || pet.species === filterValue;
+    const filteredPets = pets.filter(pet => {
+        const petSpeciesLower = pet.species.toLowerCase();
+        
+        // 1. Busca por nome OU espécie
+        const matchesSearch = pet.name.toLowerCase().includes(searchTerm) || petSpeciesLower.includes(searchTerm);
+        
+        // 2. Filtro por espécie (case-insensitive)
+        const matchesFilter = filterValue === 'all' || petSpeciesLower === filterValue;
+        
         return matchesSearch && matchesFilter;
     });
 
     if (filteredPets.length === 0) {
-        // Exibe o estado vazio se não houver pets após a filtragem
+        // Exibe o estado vazio se não houver pets
         emptyState.style.display = 'block';
     } else {
         emptyState.style.display = 'none';
@@ -163,7 +165,7 @@ const renderPets = (currentPets = pets) => {
         });
     }
 
-    // Atualiza a contagem (Acessibilidade: aria-live="polite" no index.html)
+    // Atualiza a contagem
     petCountSpan.textContent = filteredPets.length;
 };
 
@@ -174,9 +176,9 @@ const renderPets = (currentPets = pets) => {
  * @param {Event} e - O evento de submissão.
  */
 const handleFormSubmit = (e) => {
-    e.preventDefault();
+    e.preventDefault(); // Impede o recarregamento da página
 
-    // Cria um objeto pet a partir dos dados do formulário
+    // Captura dos dados do formulário
     const petData = {
         name: document.getElementById('pet-name').value.trim(),
         species: document.getElementById('pet-species').value,
@@ -193,8 +195,8 @@ const handleFormSubmit = (e) => {
 
     resetForm();
     renderPets();
-    // Move o foco de volta para o primeiro elemento (Acessibilidade)
-    document.getElementById('pet-name').focus();
+    // Foca na busca após adicionar/editar (boa UX)
+    searchInput.focus();
 };
 
 /**
@@ -203,7 +205,7 @@ const handleFormSubmit = (e) => {
  */
 const addPet = (petData) => {
     const newPet = {
-        id: Date.now(), // ID simples e único
+        id: Date.now(), // ID simples baseado no tempo
         ...petData,
     };
     pets.push(newPet);
@@ -222,13 +224,13 @@ const startEdit = (id) => {
         document.getElementById('pet-name').value = petToEdit.name;
         document.getElementById('pet-species').value = petToEdit.species;
         document.getElementById('pet-age').value = petToEdit.age;
-        document.getElementById('pet-id').value = id;
-
-        // Atualiza variáveis e botão
+        
+        // Atualiza variáveis e botões para o modo de edição
         editingPetId = id;
         submitButton.textContent = 'Salvar Alterações';
-        submitButton.classList.add('btn-success'); // Efeito visual de edição
         submitButton.classList.remove('btn-primary');
+        submitButton.classList.add('btn-success'); 
+        cancelButton.style.display = 'inline-block'; // Mostra o botão cancelar
         
         // Foca no primeiro campo do formulário (Acessibilidade)
         document.getElementById('pet-name').focus(); 
@@ -249,23 +251,27 @@ const updatePet = (id, newPetData) => {
 };
 
 /**
- * Deleta um pet e aplica a animação de fade-out.
+ * Deleta um pet com animação de fade-out.
  * @param {number} id - O ID do pet a ser deletado.
  */
 const deletePet = (id) => {
-    // 1. Encontra o elemento DOM para aplicar a animação
     const petItem = petList.querySelector(`[data-id="${id}"]`);
 
     if (petItem) {
-        // 2. Aplica a classe de animação (CSS transition)
+        // Aplica a classe de animação CSS
         petItem.classList.add('fade-out');
 
-        // 3. Deleta o item após a animação (0.4s definido no CSS)
+        // Deleta o item após a animação de 400ms (definida no CSS)
         setTimeout(() => {
             pets = pets.filter(p => p.id !== id);
             savePets(pets);
             renderPets();
-        }, 400); // Deve ser igual ou maior que a transition-duration no CSS
+
+            // Se estivermos editando o pet que acabamos de deletar, resetamos o form
+            if (editingPetId === id) {
+                resetForm();
+            }
+        }, 400); 
     }
 };
 
@@ -275,10 +281,12 @@ const deletePet = (id) => {
 const resetForm = () => {
     petForm.reset();
     editingPetId = null;
+    
+    // Volta o botão ao estado original
     submitButton.textContent = 'Adicionar Pet';
     submitButton.classList.remove('btn-success');
     submitButton.classList.add('btn-primary');
-    document.getElementById('pet-id').value = '';
+    cancelButton.style.display = 'none'; // Esconde o botão cancelar
 };
 
 
@@ -288,35 +296,29 @@ const resetForm = () => {
  * Inicializa a aplicação.
  */
 const init = () => {
-    // Carrega o tema e renderiza os pets
+    // 1. Carrega os dados persistidos
+    pets = loadPets();
+    
+    // 2. Carrega as preferências do usuário (Tema)
     loadThemePreference();
+    
+    // 3. Renderiza a lista inicial
     renderPets();
 
-    // Event Listener: Envio do Formulário (CRUD)
+    // 4. Configura Event Listeners
+
+    // CRUD: Envio do Formulário (Adicionar/Editar)
     petForm.addEventListener('submit', handleFormSubmit);
 
-    // Event Listener: Alternância de Tema
+    // CRUD: Cancelar Edição
+    cancelButton.addEventListener('click', resetForm);
+
+    // Interatividade: Alternância de Tema
     themeToggle.addEventListener('click', toggleTheme);
 
-    // Event Listener: Busca (Performance: debounce opcional, mas vamos direto)
+    // Interatividade: Busca e Filtro (Disparam a renderização)
     searchInput.addEventListener('input', renderPets);
-
-    // Event Listener: Filtro
     filterSpecies.addEventListener('change', renderPets);
-
-    // Event Listener: Reset do formulário no clique do botão Adicionar (se já estiver no modo edição)
-    // Opcional, mas melhora a UX
-    submitButton.addEventListener('click', (e) => {
-        if (editingPetId && !e.target.closest('form').checkValidity()) {
-            // Se estiver editando e o formulário for inválido, apenas submete.
-            // Se for um novo pet, o submit padrão lida.
-            return;
-        }
-        if (editingPetId) {
-            // Se o botão foi clicado, mas o formulário não foi submetido (ex: clique fora do botão)
-            // e o formulário está limpo.
-        }
-    });
 
     // Define o ano atual no footer
     document.getElementById('current-year').textContent = new Date().getFullYear();

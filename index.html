@@ -7,6 +7,7 @@
     <meta name="description" content="Sistema de Gerenciamento de Pets profissional, moderno e minimalista. Desenvolvido com HTML, CSS e JavaScript puro.">
 
     <link rel="stylesheet" href="css/style.css">
+
     </head>
 <body>
     <header class="main-header">
@@ -15,7 +16,7 @@
             <h1>Pet Manager Pro</h1>
         </div>
         <nav aria-label="Navegação Principal">
-            <button id="theme-toggle" aria-label="Alternar entre tema claro e escuro">
+            <button id="theme-toggle" aria-label="Alternar entre tema claro e escuro" class="btn-theme-toggle">
                 <span class="icon-sun">☀️</span>
             </button>
         </nav>
@@ -48,6 +49,9 @@
                 <button type="submit" class="btn btn-primary" id="submit-button">
                     Adicionar Pet
                 </button>
+                <button type="button" class="btn btn-secondary" id="cancel-edit" style="display:none;">
+                    Cancelar Edição
+                </button>
             </form>
         </section>
 
@@ -61,18 +65,19 @@
                     <option value="Cachorro">Cachorro</option>
                     <option value="Gato">Gato</option>
                     <option value="Pássaro">Pássaro</option>
+                    <option value="Outro">Outro</option>
                 </select>
             </div>
 
             <ul id="pet-list" class="pet-list" role="list">
-                <li class="empty-state" id="empty-state" aria-live="polite">Nenhum pet cadastrado. Adicione um novo!</li>
+                <li class="empty-state" id="empty-state" aria-live="polite" style="display:none;">Nenhum pet cadastrado. Adicione um novo!</li>
             </ul>
         </section>
     </main>
 
     <footer class="main-footer">
         <p>&copy; <span id="current-year"></span> Pet Manager Pro. Projeto com HTML, CSS e JS puro.</p>
-        <p>Desenvolvido com foco em Acessibilidade e Performance.</p>
+        <p>Desenvolvido com foco em Acessibilidade, Performance e Design Moderno.</p>
     </footer>
 
     <script src="js/script.js" defer></script>
