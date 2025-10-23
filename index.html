@@ -7,15 +7,18 @@
     <meta name="description" content="Sistema de Gerenciamento de Pets profissional, moderno e minimalista. Desenvolvido com HTML, CSS e JavaScript puro.">
 
     <link rel="stylesheet" href="css/style.css">
-
-    </head>
+</head>
 <body>
     <header class="main-header">
         <div class="logo">
             <span aria-label="Ícone de pata de cachorro">🐾</span>
             <h1>Pet Manager Pro</h1>
         </div>
-        <nav aria-label="Navegação Principal">
+        
+        <nav aria-label="Navegação da Aplicação" class="app-nav">
+            <a href="#dashboard" class="nav-link" id="nav-dashboard">Meus Pets</a>
+            <a href="#manage-pet" class="nav-link" id="nav-manage">Cadastrar Pet</a>
+            
             <button id="theme-toggle" aria-label="Alternar entre tema claro e escuro" class="btn-theme-toggle">
                 <span class="icon-sun">☀️</span>
             </button>
@@ -23,56 +26,62 @@
     </header>
 
     <main class="container">
-        <section class="card form-section" aria-labelledby="form-title">
-            <h2 id="form-title">Adicionar/Editar Pet</h2>
-            <form id="pet-form" class="pet-form">
-                <div class="form-group">
-                    <label for="pet-name">Nome do Pet</label>
-                    <input type="text" id="pet-name" required placeholder="Ex: Rex" aria-required="true">
-                </div>
-                <div class="form-group">
-                    <label for="pet-species">Espécie</label>
-                    <select id="pet-species" required aria-required="true">
-                        <option value="">Selecione a Espécie</option>
+        
+        <section id="dashboard" class="page-content" aria-labelledby="list-title" style="display: none;">
+            <div class="card list-card">
+                <h2 id="list-title">Pets Cadastrados (<span id="pet-count">0</span>)</h2>
+                
+                <div class="list-controls">
+                    <input type="text" id="search-input" placeholder="Buscar por nome/espécie..." aria-label="Campo de busca de pets">
+                    <select id="filter-species" aria-label="Filtro por espécie">
+                        <option value="all">Todas as Espécies</option>
                         <option value="Cachorro">Cachorro</option>
                         <option value="Gato">Gato</option>
                         <option value="Pássaro">Pássaro</option>
                         <option value="Outro">Outro</option>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label for="pet-age">Idade (anos)</label>
-                    <input type="number" id="pet-age" min="0" value="1" required aria-required="true">
-                </div>
-
-                <input type="hidden" id="pet-id">
-                <button type="submit" class="btn btn-primary" id="submit-button">
-                    Adicionar Pet
-                </button>
-                <button type="button" class="btn btn-secondary" id="cancel-edit" style="display:none;">
-                    Cancelar Edição
-                </button>
-            </form>
-        </section>
-
-        <section class="card list-section" aria-labelledby="list-title">
-            <h2 id="list-title">Pets Cadastrados (<span id="pet-count">0</span>)</h2>
-            
-            <div class="list-controls">
-                <input type="text" id="search-input" placeholder="Buscar por nome/espécie..." aria-label="Campo de busca de pets">
-                <select id="filter-species" aria-label="Filtro por espécie">
-                    <option value="all">Todas as Espécies</option>
-                    <option value="Cachorro">Cachorro</option>
-                    <option value="Gato">Gato</option>
-                    <option value="Pássaro">Pássaro</option>
-                    <option value="Outro">Outro</option>
-                </select>
+                
+                <ul id="pet-list" class="pet-list" role="list">
+                    <li class="empty-state" id="empty-state" aria-live="polite" style="display:none;">Nenhum pet cadastrado. Adicione um novo!</li>
+                </ul>
             </div>
-
-            <ul id="pet-list" class="pet-list" role="list">
-                <li class="empty-state" id="empty-state" aria-live="polite" style="display:none;">Nenhum pet cadastrado. Adicione um novo!</li>
-            </ul>
         </section>
+
+        <section id="manage-pet" class="page-content" aria-labelledby="form-title" style="display: none;">
+            <div class="card form-card">
+                <h2 id="form-title">Adicionar/Editar Pet</h2>
+                <form id="pet-form" class="pet-form">
+                    <div class="form-group">
+                        <label for="pet-name">Nome do Pet</label>
+                        <input type="text" id="pet-name" required placeholder="Ex: Rex" aria-required="true">
+                    </div>
+                    <div class="form-group">
+                        <label for="pet-species">Espécie</label>
+                        <select id="pet-species" required aria-required="true">
+                            <option value="">Selecione a Espécie</option>
+                            <option value="Cachorro">Cachorro</option>
+                            <option value="Gato">Gato</option>
+                            <option value="Pássaro">Pássaro</option>
+                            <option value="Outro">Outro</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="pet-age">Idade (anos)</label>
+                        <input type="number" id="pet-age" min="0" value="1" required aria-required="true">
+                    </div>
+    
+                    <input type="hidden" id="pet-id">
+                    <button type="submit" class="btn btn-primary" id="submit-button">
+                        Adicionar Pet
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="cancel-edit" style="display:none;">
+                        Cancelar Edição
+                    </button>
+                </form>
+            </div>
+        </section>
+
     </main>
 
     <footer class="main-footer">

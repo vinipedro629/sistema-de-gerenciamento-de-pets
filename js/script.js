@@ -1,6 +1,6 @@
 /*
- * script.js - Pet Manager Pro
- * Lógica: CRUD de Pets, LocalStorage, Tema Claro/Escuro, Filtros robustos.
+ * script.js - Pet Manager Pro (Com Roteamento)
+ * Core: Client-Side Routing (showPage), CRUD e LocalStorage.
  */
 
 // 1. Variáveis Globais do DOM
@@ -12,18 +12,18 @@ const emptyState = document.getElementById('empty-state');
 const submitButton = document.getElementById('submit-button');
 const searchInput = document.getElementById('search-input');
 const filterSpecies = document.getElementById('filter-species');
-const cancelButton = document.getElementById('cancel-edit'); // Novo botão
+const cancelButton = document.getElementById('cancel-edit');
 
-// Variável global para rastrear o estado de edição
+// Elementos de Roteamento
+const dashboardPage = document.getElementById('dashboard');
+const managePetPage = document.getElementById('manage-pet');
+const navLinks = document.querySelectorAll('.nav-link');
+const allPages = [dashboardPage, managePetPage]; // Para iterar facilmente
+
 let editingPetId = null;
-let pets = []; // Inicialmente vazia, será carregada na inicialização
+let pets = [];
 
 // 2. Persistência de Dados (Local Storage)
-
-/**
- * Carrega a lista de pets do LocalStorage.
- * @returns {Array} Lista de pets, ou um array vazio se não houver dados.
- */
 const loadPets = () => {
     try {
         const petsJson = localStorage.getItem('pets');
@@ -34,10 +34,6 @@ const loadPets = () => {
     }
 };
 
-/**
- * Salva a lista de pets no LocalStorage.
- * @param {Array} petsToSave - A lista de pets a ser salva.
- */
 const savePets = (petsToSave) => {
     try {
         localStorage.setItem('pets', JSON.stringify(petsToSave));
@@ -46,60 +42,95 @@ const savePets = (petsToSave) => {
     }
 };
 
-// 3. Gerenciamento de Tema Claro/Escuro
-
-/**
- * Carrega o tema preferido e define o estado inicial.
- */
+// 3. Gerenciamento de Tema (Código omitido para brevidade, mas idêntico ao anterior)
 const loadThemePreference = () => {
     const savedTheme = localStorage.getItem('theme');
     const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-    // Define o tema com a ordem: LocalStorage > Sistema > Padrão (light)
     let themeToSet = 'light';
-    if (savedTheme) {
-        themeToSet = savedTheme;
-    } else if (systemPrefersDark) {
-        themeToSet = 'dark';
-    }
-
+    if (savedTheme) { themeToSet = savedTheme; } 
+    else if (systemPrefersDark) { themeToSet = 'dark'; }
     setTheme(themeToSet);
 };
-
-/**
- * Aplica e salva o novo tema.
- * @param {string} theme - 'light' ou 'dark'.
- */
 const setTheme = (theme) => {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('theme', theme);
     updateThemeToggleIcon(theme);
 };
-
-/**
- * Atualiza o ícone do botão de alternância (Sol/Lua).
- * @param {string} theme - 'light' ou 'dark'.
- */
 const updateThemeToggleIcon = (theme) => {
     themeToggle.innerHTML = theme === 'dark' ? '<span class="icon-sun" aria-hidden="true">☀️</span>' : '<span class="icon-moon" aria-hidden="true">🌙</span>';
     themeToggle.setAttribute('aria-label', theme === 'dark' ? 'Mudar para tema claro' : 'Mudar para tema escuro');
 };
-
-/**
- * Alterna entre tema claro e escuro.
- */
 const toggleTheme = () => {
     const currentTheme = document.documentElement.getAttribute('data-theme');
     const newTheme = currentTheme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
 };
 
-// 4. Manipulação Dinâmica do DOM (Renderização)
+// 4. ROTEAMENTO DE PÁGINAS (NOVO CORE)
 
 /**
- * Cria um elemento HTML (li) para um pet.
- * @param {Object} pet - O objeto pet.
- * @returns {HTMLLIElement} O elemento <li> do pet.
+ * Mostra uma página, esconde as outras e atualiza o histórico do navegador.
+ * @param {string} pageId - O ID da página a ser exibida (ex: 'dashboard').
+ */
+const showPage = (pageId) => {
+    let pageFound = false;
+    
+    // 1. Alterna a visibilidade das páginas
+    allPages.forEach(page => {
+        if (page.id === pageId) {
+            page.classList.add('active-page');
+            page.style.display = 'block'; // Exibe a página (ativa o fade-in)
+            pageFound = true;
+        } else {
+            page.classList.remove('active-page');
+            // Timeout para garantir que o fade-out termine antes de sumir
+            setTimeout(() => { page.style.display = 'none'; }, 400); 
+        }
+    });
+
+    // 2. Fallback para a página padrão
+    if (!pageFound) {
+        pageId = 'dashboard';
+        dashboardPage.classList.add('active-page');
+        dashboardPage.style.display = 'block';
+    }
+
+    // 3. Atualiza a URL e o histórico (Client-Side Routing)
+    window.history.pushState({ page: pageId }, '', `#${pageId}`);
+
+    // 4. Atualiza o estado visual da navegação
+    navLinks.forEach(link => {
+        if (link.getAttribute('href') === `#${pageId}`) {
+            link.classList.add('active');
+        } else {
+            link.classList.remove('active');
+        }
+    });
+    
+    // 5. Ações específicas ao mudar de página
+    if (pageId === 'dashboard') {
+        renderPets(); // Garante que a lista está atualizada ao visualizar
+    } else if (pageId === 'manage-pet' && !editingPetId) {
+        resetForm(); // Garante formulário limpo ao entrar no modo de adição
+    }
+};
+
+/**
+ * Processa a URL atual (hash) para decidir qual página mostrar.
+ * É usado na inicialização e ao usar os botões Voltar/Avançar do navegador.
+ */
+const handleLocation = () => {
+    // Pega o hash da URL (ex: #manage-pet) e remove o #
+    const hash = window.location.hash.replace('#', '');
+    const pageId = hash || 'dashboard'; // Padrão é dashboard
+    showPage(pageId);
+};
+
+
+// 5. Manipulação Dinâmica do DOM (Renderização)
+
+/**
+ * Cria um elemento <li> para um pet.
  */
 const createPetElement = (pet) => {
     const li = document.createElement('li');
@@ -124,7 +155,6 @@ const createPetElement = (pet) => {
         </div>
     `;
 
-    // Adiciona ouvintes de eventos
     li.querySelector('.edit-btn').addEventListener('click', () => startEdit(pet.id));
     li.querySelector('.delete-btn').addEventListener('click', () => deletePet(pet.id));
 
@@ -135,48 +165,36 @@ const createPetElement = (pet) => {
  * Renderiza a lista de pets no DOM com filtros e busca.
  */
 const renderPets = () => {
-    petList.innerHTML = ''; // Limpa a lista atual
-
+    petList.innerHTML = '';
     const searchTerm = searchInput.value.toLowerCase();
-    const filterValue = filterSpecies.value.toLowerCase(); // Padroniza para robustez
+    const filterValue = filterSpecies.value.toLowerCase(); 
 
-    // Aplica Filtros e Busca
     const filteredPets = pets.filter(pet => {
         const petSpeciesLower = pet.species.toLowerCase();
         
-        // 1. Busca por nome OU espécie
+        // Lógica de busca e filtro combinada (case-insensitive)
         const matchesSearch = pet.name.toLowerCase().includes(searchTerm) || petSpeciesLower.includes(searchTerm);
-        
-        // 2. Filtro por espécie (case-insensitive)
         const matchesFilter = filterValue === 'all' || petSpeciesLower === filterValue;
         
         return matchesSearch && matchesFilter;
     });
 
     if (filteredPets.length === 0) {
-        // Exibe o estado vazio se não houver pets
         emptyState.style.display = 'block';
     } else {
         emptyState.style.display = 'none';
-        
-        // Adiciona pets ao DOM
         filteredPets.forEach(pet => {
             petList.appendChild(createPetElement(pet));
         });
     }
-
-    // Atualiza a contagem
     petCountSpan.textContent = filteredPets.length;
 };
 
-// 5. Funções CRUD (Criação, Leitura, Atualização, Exclusão)
 
-/**
- * Lida com o envio do formulário (Adicionar ou Atualizar).
- * @param {Event} e - O evento de submissão.
- */
+// 6. Funções CRUD (Criação, Leitura, Atualização, Exclusão)
+
 const handleFormSubmit = (e) => {
-    e.preventDefault(); // Impede o recarregamento da página
+    e.preventDefault();
 
     // Captura dos dados do formulário
     const petData = {
@@ -186,36 +204,30 @@ const handleFormSubmit = (e) => {
     };
 
     if (editingPetId) {
-        // Modo Edição
         updatePet(editingPetId, petData);
     } else {
-        // Modo Criação
         addPet(petData);
     }
 
+    // Após o CRUD, retorna à lista de pets
     resetForm();
-    renderPets();
-    // Foca na busca após adicionar/editar (boa UX)
-    searchInput.focus();
+    showPage('dashboard');
 };
 
-/**
- * Adiciona um novo pet.
- * @param {Object} petData - Dados do novo pet.
- */
 const addPet = (petData) => {
-    const newPet = {
-        id: Date.now(), // ID simples baseado no tempo
-        ...petData,
-    };
+    const newPet = { id: Date.now(), ...petData };
     pets.push(newPet);
     savePets(pets);
 };
 
-/**
- * Inicia o modo de edição, preenchendo o formulário.
- * @param {number} id - O ID do pet a ser editado.
- */
+const updatePet = (id, newPetData) => {
+    const index = pets.findIndex(p => p.id === id);
+    if (index !== -1) {
+        pets[index] = { ...pets[index], ...newPetData };
+        savePets(pets);
+    }
+};
+
 const startEdit = (id) => {
     const petToEdit = pets.find(p => p.id === id);
 
@@ -225,102 +237,84 @@ const startEdit = (id) => {
         document.getElementById('pet-species').value = petToEdit.species;
         document.getElementById('pet-age').value = petToEdit.age;
         
-        // Atualiza variáveis e botões para o modo de edição
+        // Entra no modo de edição visual
         editingPetId = id;
         submitButton.textContent = 'Salvar Alterações';
         submitButton.classList.remove('btn-primary');
         submitButton.classList.add('btn-success'); 
-        cancelButton.style.display = 'inline-block'; // Mostra o botão cancelar
+        cancelButton.style.display = 'inline-block';
+
+        // MUDA PARA A PÁGINA DO FORMULÁRIO
+        showPage('manage-pet'); 
         
-        // Foca no primeiro campo do formulário (Acessibilidade)
         document.getElementById('pet-name').focus(); 
     }
 };
 
-/**
- * Atualiza os dados de um pet existente.
- * @param {number} id - O ID do pet.
- * @param {Object} newPetData - Os novos dados do pet.
- */
-const updatePet = (id, newPetData) => {
-    const index = pets.findIndex(p => p.id === id);
-    if (index !== -1) {
-        pets[index] = { ...pets[index], ...newPetData };
-        savePets(pets);
-    }
-};
-
-/**
- * Deleta um pet com animação de fade-out.
- * @param {number} id - O ID do pet a ser deletado.
- */
 const deletePet = (id) => {
     const petItem = petList.querySelector(`[data-id="${id}"]`);
 
     if (petItem) {
-        // Aplica a classe de animação CSS
         petItem.classList.add('fade-out');
 
-        // Deleta o item após a animação de 400ms (definida no CSS)
         setTimeout(() => {
             pets = pets.filter(p => p.id !== id);
             savePets(pets);
             renderPets();
 
-            // Se estivermos editando o pet que acabamos de deletar, resetamos o form
             if (editingPetId === id) {
                 resetForm();
+                showPage('dashboard'); 
             }
         }, 400); 
     }
 };
 
-/**
- * Reseta o formulário e sai do modo de edição.
- */
 const resetForm = () => {
     petForm.reset();
     editingPetId = null;
-    
-    // Volta o botão ao estado original
     submitButton.textContent = 'Adicionar Pet';
     submitButton.classList.remove('btn-success');
     submitButton.classList.add('btn-primary');
-    cancelButton.style.display = 'none'; // Esconde o botão cancelar
+    cancelButton.style.display = 'none';
 };
 
 
-// 6. Inicialização e Event Listeners
+// 7. Inicialização e Event Listeners
 
-/**
- * Inicializa a aplicação.
- */
 const init = () => {
-    // 1. Carrega os dados persistidos
+    // Carregamento inicial de dados e tema
     pets = loadPets();
-    
-    // 2. Carrega as preferências do usuário (Tema)
     loadThemePreference();
     
-    // 3. Renderiza a lista inicial
-    renderPets();
+    // 1. Roteamento: Define qual página mostrar na carga inicial
+    handleLocation();
 
-    // 4. Configura Event Listeners
+    // 2. Roteamento: Lida com os botões de Voltar/Avançar do navegador
+    window.addEventListener('popstate', handleLocation); 
 
-    // CRUD: Envio do Formulário (Adicionar/Editar)
+    // 3. Roteamento: Lida com cliques nos links da navegação interna
+    navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            if (link.getAttribute('href').startsWith('#')) {
+                e.preventDefault();
+                const pageId = link.getAttribute('href').replace('#', '');
+                // showPage é chamada para alternar
+                showPage(pageId); 
+            }
+        });
+    });
+
+    // 4. CRUD e Interatividade
     petForm.addEventListener('submit', handleFormSubmit);
-
-    // CRUD: Cancelar Edição
-    cancelButton.addEventListener('click', resetForm);
-
-    // Interatividade: Alternância de Tema
+    cancelButton.addEventListener('click', () => {
+        resetForm();
+        showPage('dashboard'); // Volta para o dashboard ao cancelar
+    });
     themeToggle.addEventListener('click', toggleTheme);
-
-    // Interatividade: Busca e Filtro (Disparam a renderização)
     searchInput.addEventListener('input', renderPets);
     filterSpecies.addEventListener('change', renderPets);
 
-    // Define o ano atual no footer
     document.getElementById('current-year').textContent = new Date().getFullYear();
 };
 
