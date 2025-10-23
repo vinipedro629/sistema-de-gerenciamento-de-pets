@@ -54,4 +54,27 @@
         <section class="card list-section" aria-labelledby="list-title">
             <h2 id="list-title">Pets Cadastrados (<span id="pet-count">0</span>)</h2>
             
-            <div class
+            <div class="list-controls">
+                <input type="text" id="search-input" placeholder="Buscar por nome/espécie..." aria-label="Campo de busca de pets">
+                <select id="filter-species" aria-label="Filtro por espécie">
+                    <option value="all">Todas as Espécies</option>
+                    <option value="Cachorro">Cachorro</option>
+                    <option value="Gato">Gato</option>
+                    <option value="Pássaro">Pássaro</option>
+                </select>
+            </div>
+
+            <ul id="pet-list" class="pet-list" role="list">
+                <li class="empty-state" id="empty-state" aria-live="polite">Nenhum pet cadastrado. Adicione um novo!</li>
+            </ul>
+        </section>
+    </main>
+
+    <footer class="main-footer">
+        <p>&copy; <span id="current-year"></span> Pet Manager Pro. Projeto com HTML, CSS e JS puro.</p>
+        <p>Desenvolvido com foco em Acessibilidade e Performance.</p>
+    </footer>
+
+    <script src="js/script.js" defer></script>
+</body>
+</html>
