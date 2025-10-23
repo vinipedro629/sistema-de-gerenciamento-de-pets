@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pet Manager Pro | Gerenciamento de Pets</title>
+    <meta name="description" content="Sistema de Gerenciamento de Pets profissional, moderno e minimalista. Desenvolvido com HTML, CSS e JavaScript puro.">
+
+    <link rel="stylesheet" href="css/style.css">
+    </head>
+<body>
+    <header class="main-header">
+        <div class="logo">
+            <span aria-label="Ícone de pata de cachorro">🐾</span>
+            <h1>Pet Manager Pro</h1>
+        </div>
+        <nav aria-label="Navegação Principal">
+            <button id="theme-toggle" aria-label="Alternar entre tema claro e escuro">
+                <span class="icon-sun">☀️</span>
+            </button>
+        </nav>
+    </header>
+
+    <main class="container">
+        <section class="card form-section" aria-labelledby="form-title">
+            <h2 id="form-title">Adicionar/Editar Pet</h2>
+            <form id="pet-form" class="pet-form">
+                <div class="form-group">
+                    <label for="pet-name">Nome do Pet</label>
+                    <input type="text" id="pet-name" required placeholder="Ex: Rex" aria-required="true">
+                </div>
+                <div class="form-group">
+                    <label for="pet-species">Espécie</label>
+                    <select id="pet-species" required aria-required="true">
+                        <option value="">Selecione a Espécie</option>
+                        <option value="Cachorro">Cachorro</option>
+                        <option value="Gato">Gato</option>
+                        <option value="Pássaro">Pássaro</option>
+                        <option value="Outro">Outro</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="pet-age">Idade (anos)</label>
+                    <input type="number" id="pet-age" min="0" value="1" required aria-required="true">
+                </div>
+
+                <input type="hidden" id="pet-id">
+                <button type="submit" class="btn btn-primary" id="submit-button">
+                    Adicionar Pet
+                </button>
+            </form>
+        </section>
+
+        <section class="card list-section" aria-labelledby="list-title">
+            <h2 id="list-title">Pets Cadastrados (<span id="pet-count">0</span>)</h2>
+            
+            <div class
